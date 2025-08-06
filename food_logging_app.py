@@ -1,3 +1,4 @@
+
 import streamlit as st
 import os
 from PIL import Image
@@ -6,8 +7,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 from datetime import datetime
 
-# ✅ 기본 폰트 설정 (Streamlit Cloud 안전)
-plt.rcParams['font.family'] = 'sans-serif'
+plt.rcParams['font.family'] = 'DejaVu Sans'
 plt.rcParams['axes.unicode_minus'] = False
 
 if "food_counts" not in st.session_state:
@@ -44,21 +44,34 @@ if img and label:
 
 if st.session_state.food_counts:
     st.markdown("---")
-    st.subheader("🍕 음식 기록 통계 (비율 기준)")
+    st.subheader("📅 날짜 필터로 보기")
 
-    labels = list(st.session_state.food_counts.keys())
-    sizes = list(st.session_state.food_counts.values())
-    fig, ax = plt.subplots()
-    ax.pie(sizes, labels=labels, autopct="%1.1f%%", startangle=90)
-    ax.axis("equal")
-    st.pyplot(fig)
+    df = pd.DataFrame(st.session_state.log)
+    df["날짜"] = pd.to_datetime(df["날짜"])
+    min_date = df["날짜"].min()
+    max_date = df["날짜"].max()
+    date_range = st.date_input("날짜 범위 선택", [min_date, max_date])
+
+    if len(date_range) == 2:
+        start_date, end_date = date_range
+        df = df[(df["날짜"] >= pd.to_datetime(start_date)) & (df["날짜"] <= pd.to_datetime(end_date))]
+
+    st.markdown("---")
+    st.subheader("📊 상위 음식 Top 5")
+
+    top_foods = df["음식"].value_counts().head(5)
+    st.bar_chart(top_foods)
+
+    st.markdown("---")
+    st.subheader("📈 월별 음식 소비 추이")
+    df["월"] = df["날짜"].dt.to_period("M").astype(str)
+    monthly = df.groupby(["월", "음식"]).size().unstack(fill_value=0)
+    st.line_chart(monthly)
 
     st.markdown("---")
     st.subheader("📅 날짜별 음식 소비 기록")
-    df = pd.DataFrame(st.session_state.log)
-    if not df.empty:
-        grouped = df.groupby(["날짜", "음식"]).size().unstack(fill_value=0)
-        st.bar_chart(grouped)
+    grouped = df.groupby(["날짜", "음식"]).size().unstack(fill_value=0)
+    st.bar_chart(grouped)
 
     st.markdown("---")
     st.subheader("📆 요일별 소비 패턴")
@@ -75,4 +88,3 @@ st.markdown("""
     }
 </style>
 """, unsafe_allow_html=True)
-
