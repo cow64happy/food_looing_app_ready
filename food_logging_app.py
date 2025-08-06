@@ -1,4 +1,3 @@
-
 import streamlit as st
 import os
 from PIL import Image
@@ -6,15 +5,9 @@ import uuid
 import matplotlib.pyplot as plt
 import pandas as pd
 from datetime import datetime
-import matplotlib.font_manager as fm
 
-# ✅ Streamlit-safe font load (no urllib)
-font_path = os.path.join("fonts", "NanumGothic.ttf")
-if os.path.exists(font_path):
-    fm.fontManager.addfont(font_path)
-    plt.rcParams['font.family'] = 'NanumGothic'
-else:
-    plt.rcParams['font.family'] = 'sans-serif'
+# ✅ 기본 폰트 설정 (Streamlit Cloud 안전)
+plt.rcParams['font.family'] = 'sans-serif'
 plt.rcParams['axes.unicode_minus'] = False
 
 if "food_counts" not in st.session_state:
@@ -82,3 +75,4 @@ st.markdown("""
     }
 </style>
 """, unsafe_allow_html=True)
+
